@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "docker": {
+      "command": "npx",
+      "args": ["@0xshariq/docker-mcp-server"],
+      "env": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/Users/thomasperryjr/quelly-app"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git", "--repository", "/Users/thomasperryjr/quelly-app"]
+    }
+  }
+}

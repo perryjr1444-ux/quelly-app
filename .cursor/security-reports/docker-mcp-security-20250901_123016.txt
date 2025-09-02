@@ -1,0 +1,15 @@
+📁 Working Directory: poofpass-app
+🐳 Docker CLI: Ready for Docker operations
+🔧 Executing: docker-containers --all
+❌ Error: [DOCKER-CMD] docker ps -a --format 'table {{.ID}}	{{.Image}}	{{.Command}}	{{.CreatedAt}}	{{.Status}}	{{.Ports}}	{{.Names}}' | 60ms
+
+🐳 Docker Containers:
+
+CONTAINER ID   IMAGE                           COMMAND                  CREATED AT                      STATUS                   PORTS                                         NAMES
+949483b9bd23   redis:7-alpine                  "docker-entrypoint.s…"   2025-08-29 23:42:33 -0500 CDT   Exited (0) 2 days ago                                                  lucid_raman
+f3dc65c254b1   operator-bridge-broker          "uvicorn main:app --…"   2025-08-28 02:05:59 -0500 CDT   Up 9 hours               0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   operator-bridge-broker-1
+c14a1eb38693   operator-bridge-worker:latest   "python -u /app/work…"   2025-08-28 02:02:54 -0500 CDT   Exited (1) 9 hours ago                                                 great_mcclintock
+16ea27b4940d   operator-bridge-worker          "python -u /app/work…"   2025-08-25 12:05:06 -0500 CDT   Up 9 hours                                                             operator-bridge-worker-1
+ebcaeadd83f9   redis:7-alpine                  "docker-entrypoint.s…"   2025-08-25 12:04:02 -0500 CDT   Up 9 hours               6379/tcp                                      operator-bridge-redis-1
+17882e4c4d73   hashicorp/vault:1.16            "docker-entrypoint.s…"   2025-08-25 12:04:02 -0500 CDT   Up 9 hours               0.0.0.0:8200->8200/tcp, [::]:8200->8200/tcp   operator-bridge-vault-1
+

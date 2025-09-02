@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "docker": {
+      "command": "npx",
+      "args": ["@0xshariq/docker-mcp-server"],
+      "env": {
+        "DOCKER_HOST": "unix:///var/run/docker.sock"
+      }
+    },
+    "ramparts": {
+      "command": "ramparts",
+      "args": ["mcp-stdio"],
+      "env": {
+        "RAMPARTS_CONFIG": "/Users/thomasperryjr/quelly-app/.cursor/ramparts-config.yaml"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/Users/thomasperryjr/quelly-app"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git", "--repository", "/Users/thomasperryjr/quelly-app"]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["@supabase/mcp-utils"]
+    }
+  }
+}

@@ -4,5 +4,6 @@ export type ApiResponse<T> = {
   error?: {
     code: string;
     message: string;
+    details?: any;
   };
 };

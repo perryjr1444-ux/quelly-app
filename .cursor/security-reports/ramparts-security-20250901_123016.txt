@@ -1,0 +1,5 @@
+error: unexpected argument '--verbose' found
+
+Usage: ramparts scan-config [OPTIONS]
+
+For more information, try '--help'.

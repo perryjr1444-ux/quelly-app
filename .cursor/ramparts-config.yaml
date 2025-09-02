@@ -1,0 +1,214 @@
+# Ramparts Security Configuration for Quelly
+# Comprehensive security assessment and monitoring
+
+# LLM Configuration for Security Analysis
+llm:
+  provider: "openai"  # or "anthropic", "local"
+  model: "gpt-4o-mini"  # or "claude-3.5-sonnet"
+  api_key: "${OPENAI_API_KEY}"  # Set in environment
+  temperature: 0.1  # Low temperature for consistent security analysis
+
+# Security Assessment Configuration
+security:
+  # Tool Security Assessments
+  tool_security:
+    enabled: true
+    checks:
+      - tool_poisoning
+      - sql_injection
+      - command_injection
+      - path_traversal
+      - authentication_bypass
+      - secrets_leakage
+      - rate_limiting_bypass
+      - privilege_escalation
+  
+  # Prompt Security Assessments
+  prompt_security:
+    enabled: true
+    checks:
+      - prompt_injection
+      - jailbreak_attempts
+      - pii_leakage
+      - sensitive_data_exposure
+      - role_confusion
+  
+  # Resource Security Assessments
+  resource_security:
+    enabled: true
+    checks:
+      - path_traversal
+      - sensitive_data_exposure
+      - unauthorized_access
+      - data_breach_vectors
+  
+  # API Security Assessments
+  api_security:
+    enabled: true
+    checks:
+      - endpoint_vulnerabilities
+      - authentication_weaknesses
+      - authorization_bypass
+      - input_validation
+      - output_encoding
+      - rate_limiting
+      - cors_misconfiguration
+
+# MCP Server Scanning Configuration
+scanning:
+# Quelly-specific security patterns
+  custom_patterns:
+    - name: "password_rotation_bypass"
+      pattern: ".*password.*rotation.*bypass.*"
+      severity: "CRITICAL"
+      description: "Attempts to bypass password rotation security"
+    
+    - name: "hash_manipulation"
+      pattern: ".*hash.*manipulation.*"
+      severity: "HIGH"
+      description: "Attempts to manipulate cryptographic hashes"
+    
+    - name: "session_hijacking"
+      pattern: ".*session.*hijack.*"
+      severity: "CRITICAL"
+      description: "Attempts to hijack user sessions"
+    
+    - name: "encryption_bypass"
+      pattern: ".*encryption.*bypass.*"
+      severity: "CRITICAL"
+      description: "Attempts to bypass encryption mechanisms"
+  
+  # Security thresholds
+  thresholds:
+    critical: 1      # Any critical issue fails the scan
+    high: 3         # More than 3 high issues fails the scan
+    medium: 10      # More than 10 medium issues fails the scan
+    low: 25         # More than 25 low issues fails the scan
+
+# Reporting Configuration
+reporting:
+  format: "detailed"  # "summary", "detailed", "json"
+  output_file: "/Users/thomasperryjr/quelly-app/.cursor/security-report.md"
+  include_recommendations: true
+  include_remediation_steps: true
+  include_severity_breakdown: true
+  
+  # Custom security metrics for Quelly
+  custom_metrics:
+    - name: "password_security_score"
+      description: "Overall password security assessment"
+      calculation: "weighted_average"
+    
+    - name: "encryption_strength_score"
+      description: "Cryptographic implementation strength"
+      calculation: "weighted_average"
+    
+    - name: "session_security_score"
+      description: "Session management security"
+      calculation: "weighted_average"
+    
+    - name: "api_security_score"
+      description: "API endpoint security assessment"
+      calculation: "weighted_average"
+
+# Integration Configuration
+integrations:
+  # Docker MCP Server Security
+  docker:
+    enabled: true
+    security_checks:
+      - container_escape_attempts
+      - privilege_escalation
+      - network_isolation_bypass
+      - volume_mount_vulnerabilities
+  
+  # Supabase MCP Security
+  supabase:
+    enabled: true
+    security_checks:
+      - database_injection
+      - rls_bypass
+      - auth_bypass
+      - data_exfiltration
+  
+  # Git MCP Security
+  git:
+    enabled: true
+    security_checks:
+      - credential_exposure
+      - secret_commits
+      - malicious_commits
+      - branch_protection_bypass
+
+# Continuous Monitoring
+monitoring:
+  enabled: true
+  interval: "5m"  # Check every 5 minutes
+  alert_on:
+    - critical_security_issues
+    - new_vulnerabilities
+    - security_score_drops
+    - suspicious_activity
+  
+# Quelly-specific monitoring
+  custom_monitors:
+    - name: "password_rotation_health"
+      description: "Monitor password rotation system health"
+      check_interval: "1m"
+      
+    - name: "hash_integrity"
+      description: "Monitor cryptographic hash integrity"
+      check_interval: "2m"
+      
+    - name: "session_security"
+      description: "Monitor session security status"
+      check_interval: "1m"
+      
+    - name: "api_endpoint_security"
+      description: "Monitor API endpoint security"
+      check_interval: "3m"
+
+# Alerting Configuration
+alerting:
+  enabled: true
+  channels:
+    - type: "console"
+      level: "INFO"
+    
+    - type: "file"
+      level: "WARNING"
+      path: "/Users/thomasperryjr/quelly-app/.cursor/security-alerts.log"
+    
+    - type: "webhook"
+      level: "CRITICAL"
+      url: "${SECURITY_WEBHOOK_URL}"
+      headers:
+        Authorization: "Bearer ${SECURITY_WEBHOOK_TOKEN}"
+
+# Performance Configuration
+performance:
+  max_concurrent_scans: 5
+  scan_timeout: "30s"
+  retry_attempts: 3
+  backoff_delay: "5s"
+  
+  # Resource limits
+  max_memory_usage: "512MB"
+  max_cpu_usage: "50%"
+  max_disk_usage: "100MB"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # "DEBUG", "INFO", "WARNING", "ERROR"
+  format: "structured"  # "text", "json", "structured"
+  output: "file"  # "console", "file", "both"
+  file_path: "/Users/thomasperryjr/quelly-app/.cursor/ramparts.log"
+  max_file_size: "10MB"
+  max_files: 5
+  
+  # Security event logging
+  security_events:
+    enabled: true
+    include_metadata: true
+    include_context: true
+    anonymize_pii: true

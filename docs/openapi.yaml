@@ -1,0 +1,579 @@
+openapi: 3.1.0
+info:
+  title: PoofPass API
+  description: |
+    PoofPass is a secure disposable password management system with automatic rotation,
+    zero-trust verification, and enterprise-grade security features.
+    
+    ## Authentication
+    All API endpoints require authentication via Supabase Auth cookies or JWT tokens.
+    
+    ## Rate Limiting
+    - Free tier: 20 requests per minute
+    - Pro tier: 40 requests per minute
+    - Enterprise tier: 200 requests per minute
+    
+    ## Error Handling
+    All endpoints return consistent error responses with error codes and messages.
+  version: 1.0.0
+  contact:
+    email: support@poofpass.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.poofpass.com
+    description: Production server
+  - url: http://localhost:3000
+    description: Development server
+
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      description: Check if the API is operational
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/passwords:
+    get:
+      summary: List password references
+      description: Retrieve all password references for the authenticated user
+      tags:
+        - Passwords
+      parameters:
+        - name: label
+          in: query
+          description: Filter by label
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [active, used]
+      responses:
+        '200':
+          description: List of password references
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    post:
+      summary: Create new password
+      description: Generate a new disposable password with optional label
+      tags:
+        - Passwords
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePasswordRequest'
+      responses:
+        '200':
+          description: Password created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/QuotaExceeded'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/passwords/{id}:
+    patch:
+      summary: Use and rotate password
+      description: Mark a password as used and automatically create a new one
+      tags:
+        - Passwords
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Password ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Password used and rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/check/issue:
+    post:
+      summary: Issue check credential
+      description: Create a new zero-trust check credential
+      tags:
+        - Check System
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueCheckRequest'
+      responses:
+        '200':
+          description: Check credential issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckCredentialResponse'
+        '402':
+          $ref: '#/components/responses/QuotaExceeded'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/check/verify:
+    post:
+      summary: Verify check credential
+      description: Verify a check credential with optional rotation
+      tags:
+        - Check System
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyCheckRequest'
+      responses:
+        '200':
+          description: Verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyCheckResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/auth/magic-link:
+    post:
+      summary: Send magic link
+      description: Send a magic link for passwordless authentication
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MagicLinkRequest'
+      responses:
+        '200':
+          description: Magic link sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/auth/2fa/setup:
+    post:
+      summary: Setup 2FA
+      description: Generate TOTP secret and QR code for 2FA setup
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: 2FA setup initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwoFactorSetupResponse'
+        '400':
+          description: 2FA already enabled
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/2fa/enable:
+    post:
+      summary: Enable 2FA
+      description: Verify TOTP code and enable 2FA
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableTwoFactorRequest'
+      responses:
+        '200':
+          description: 2FA enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+        data:
+          type: object
+          nullable: true
+        error:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              nullable: true
+
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy]
+                timestamp:
+                  type: string
+                  format: date-time
+
+    PasswordReference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          nullable: true
+        pointer:
+          type: string
+        current_version:
+          type: integer
+        status:
+          type: string
+          enum: [active, used]
+        created_at:
+          type: string
+          format: date-time
+
+    PasswordListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/PasswordReference'
+
+    PasswordResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PasswordReference'
+
+    CreatePasswordRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+          maxLength: 100
+        expiresAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+
+    CheckCredential:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          nullable: true
+        secret:
+          type: string
+          minLength: 24
+          maxLength: 128
+
+    CheckCredentialResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CheckCredential'
+
+    IssueCheckRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+          maxLength: 100
+        expires_at:
+          type: string
+          format: date-time
+
+    VerifyCheckRequest:
+      type: object
+      required:
+        - id
+        - secret
+      properties:
+        id:
+          type: string
+          format: uuid
+        secret:
+          type: string
+          minLength: 24
+          maxLength: 128
+        rotate:
+          type: boolean
+          default: false
+
+    VerifyCheckResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                ok:
+                  type: boolean
+                rotatedSecret:
+                  type: string
+                  nullable: true
+
+    MagicLinkRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+        redirectTo:
+          type: string
+          format: uri
+
+    TwoFactorSetupResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                secret:
+                  type: string
+                qrCode:
+                  type: string
+                  description: QR code as data URL
+                backupCodes:
+                  type: array
+                  items:
+                    type: string
+
+    EnableTwoFactorRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+        type:
+          type: string
+          enum: [totp, sms, email]
+          default: totp
+
+    SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                success:
+                  type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validation_error:
+              value:
+                ok: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request data
+                  details:
+                    errors:
+                      - path: email
+                        message: Invalid email format
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error:
+              code: NOT_AUTHENTICATED
+              message: User not authenticated
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error:
+              code: FORBIDDEN
+              message: Insufficient permissions
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error:
+              code: NOT_FOUND
+              message: Resource not found
+
+    QuotaExceeded:
+      description: Quota exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error:
+              code: QUOTA_EXCEEDED
+              message: Free plan limit reached
+
+    RateLimited:
+      description: Too many requests
+      headers:
+        Retry-After:
+          description: Number of seconds to wait before retrying
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            error:
+              code: RATE_LIMITED
+              message: Too many requests
+
+tags:
+  - name: System
+    description: System health and status endpoints
+  - name: Authentication
+    description: User authentication and 2FA
+  - name: Passwords
+    description: Disposable password management
+  - name: Check System
+    description: Zero-trust credential verification
