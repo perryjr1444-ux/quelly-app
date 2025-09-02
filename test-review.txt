@@ -1,0 +1,5 @@
+This is a test file to trigger the Cursor code review workflow.
+
+The workflow should automatically run when this file is committed and a pull request is created.
+
+Let's see if the automated code review system works!
