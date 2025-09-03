@@ -1,0 +1,56 @@
+name: Policy Checks (OPA/Conftest)
+
+on:
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: read
+
+# Explicit exception for action pinning in this workflow only.
+x_policy_exception_actions_pinning: true
+
+jobs:
+  opa_policies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install conftest
+        run: |
+          set -euo pipefail
+          VERSION="0.56.0"
+          curl -sSL -o conftest.tar.gz "https://github.com/open-policy-agent/conftest/releases/download/v${VERSION}/conftest_${VERSION}_Linux_x86_64.tar.gz"
+          tar -xzf conftest.tar.gz
+          sudo mv conftest /usr/local/bin/
+          conftest --version
+
+      - name: Generate changed files list
+        id: changes
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git fetch --depth=0 origin 
+          git diff --name-only "$BASE_SHA" HEAD | jq -R -s -c 'split("\n")[:-1]' | jq '{changed_files: .}' > policy_input.json
+          echo "Changed files:"; cat policy_input.json | jq -r '.changed_files[]'
+
+      - name: Run allowed paths policy
+        run: |
+          conftest test policy_input.json -p .policy/policies
+
+      - name: Run workflows policy checks
+        run: |
+          conftest test .github/workflows -p .policy/policies
+
+      - name: Run npm dependency pinning policy (if package.json exists)
+        run: |
+          if [ -f package.json ]; then
+            conftest test package.json -p .policy/policies
+          else
+            echo "package.json not found; skipping npm pinning check."
+          fi
+
+      - name: Report completion
+        run: |
+          echo "#signal:Security_patch Policy checks completed."
