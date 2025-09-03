@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "last_updated": "",
+  "allowed_paths": [
+    "/apps/",
+    "/docs/",
+    "/tests/",
+    "/reports/",
+    "/ai/context/",
+    ".github/",
+    ".policy/"
+  ],
+  "signals": [
+    "#signal:API_contract_update",
+    "#signal:Refactor_needed",
+    "#signal:Security_patch",
+    "#signal:manual_approval_required"
+  ],
+  "log_path": "/ai/logs/YYYY-MM-DD.jsonl"
+}
+
