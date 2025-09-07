@@ -4,7 +4,6 @@ default allow = true
 
 # Allowed path prefixes for agent modifications
 allowed_prefixes = [
-  "app/",
   "apps/",
   "docs/",
   "tests/",
