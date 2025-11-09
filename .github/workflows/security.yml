@@ -115,10 +115,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: License Scan
-        uses: fossas/fossa-action@main
-        with:
-          api-key: ${{ secrets.FOSSA_API_KEY }}
+      # FOSSA license scan removed: repository does not have FOSSA_API_KEY secret
           
       - name: GDPR Compliance Check
         run: |
