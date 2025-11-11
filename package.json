@@ -21,7 +21,7 @@
     "@sentry/nextjs": "10.8.0",
     "@socket.io/redis-adapter": "^8.2.0",
     "@stripe/stripe-js": "7.9.0",
-    "@supabase/ssr": "^0.5.2",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.45.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
